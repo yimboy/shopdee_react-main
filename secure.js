@@ -6,16 +6,16 @@ const cors = require('cors')
 const port = 4000
 
 
-//const https = require('https');
-//const fs = require('fs');
+const https = require('https');
+const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const SECRET_KEY = 'UX23Y24%@&2aMb';
 
 // Load SSL certificates
-//const privateKey = fs.readFileSync('privatekey.pem', 'utf8');
-//const certificate = fs.readFileSync('certificate.pem', 'utf8');
-//const credentials = { key: privateKey, cert: certificate };
+const privateKey = fs.readFileSync('privatekey.pem', 'utf8');
+const certificate = fs.readFileSync('certificate.pem', 'utf8');
+const credentials = { key: privateKey, cert: certificate };
 
 //Database(MySql) configulation
 const db = mysql.createConnection(
@@ -152,33 +152,32 @@ function query(sql, params) {
     });
 }
 
-
-// Profile
-app.get('/api/profile/:custID',
+// API profile
+app.get('/api/profile/:id', 
     async function(req, res){
-        const custID = req.params.id;        
-        const token = req.headers["authorization"].replace("Bearer ", "");
-            
-        try{
-            let decode = jwt.verify(token, SECRET_KEY);               
-            if(custID != decode.custID) {
-              return res.send( {'message':'Id is not matched','status':false} );
-            }
-            
-            let sql = "SELECT * FROM customer WHERE custID = ? AND isActive = 1";        
-            let customer = await query(sql, [custID]);        
-            
-            customer = customer[0];
-            customer['message'] = 'success';
-            customer['status'] = true;
-            res.send(customer); 
+        const custID = req.params.id;
+        const token = req.headers["authorization"].replace("Bearer","");
 
-        }catch(error){
-            res.send( {'message':'Token is invalid','status':false} );
+        try {
+            let decode = jwt.verify(token, SECRET_KEY);
+            if(custID != decode.custID){
+                return res.send({'message':'ไม่มีสิทธิ์เข้าถึงข้อมูล','status':false});
+            }
+
+            let sql = "SELECT * FROM customer WHERE custID=? AND isActive = 1";
+            let customer = await query(sql, [custID]);
+
+            customer = customer[0];
+            customer['message'] = 'ข้อมูลโปรไฟล์ของคุณ';
+            customer['status'] = true;
+            res.send(customer);
+
+        } catch (error) {
+            res.send({'message':'ไม่มีสิทธิ์เข้าถึงข้อมูล','status':false});
         }
-        
     }
 );
+
 
 
 // Get all products

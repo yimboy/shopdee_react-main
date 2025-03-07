@@ -25,12 +25,14 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import RemoveIcon from "@mui/icons-material/Remove";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
 
 const HomePage = () => {
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     axios
@@ -83,6 +85,10 @@ const HomePage = () => {
     product.productName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleProductClick = (productID) => {
+    navigate(`/product/${productID}`);
+  };
+
   return (
     <div>
       {/* Header */}
@@ -112,6 +118,9 @@ const HomePage = () => {
               <ShoppingCartIcon />
             </Badge>
           </IconButton>
+          <Button component={Link} to="/signin" color="inherit" sx={{ marginLeft: 2 }}>
+            Login
+          </Button>
         </Toolbar>
       </AppBar>
 
@@ -123,7 +132,7 @@ const HomePage = () => {
         <Grid container spacing={3}>
           {filteredProducts.map((product) => (
             <Grid item xs={12} sm={6} md={4} key={product.productID}>
-              <Card>
+              <Card onClick={() => handleProductClick(product.productID)}>
                 <CardMedia
                   component="img"
                   height="200"
@@ -141,7 +150,10 @@ const HomePage = () => {
                     color="primary"
                     fullWidth
                     sx={{ mt: 1 }}
-                    onClick={() => addToCart(product)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      addToCart(product);
+                    }}
                   >
                     เพิ่มลงตะกร้า
                   </Button>

@@ -1,23 +1,24 @@
 import './App.css';
-
 import SignIn from './components/SignIn';
 import SignUp from './components/SignUp';
 import HomePage from './components/HomePage';
 import Profile from './components/Profile';
+import ProductDetail from './components/ProductDetail';
 import React from 'react';
-import { BrowserRouter as Router , Routes, Route} from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route exact path='/profile/:id' element={<Profile/>} />
-        <Route exact path='/homepage' element={<HomePage/>} />
-        <Route exact path='/signin' element={<SignIn/>} />
-        <Route exact path='/signup' element={<SignUp/>} />
+        <Route path='/' element={<Navigate to="/homepage" />} />
+        <Route path='/homepage' element={<HomePage />} />
+        <Route path='/signin' element={<SignIn />} />
+        <Route path='/signup' element={<SignUp />} />
+        <Route path='/profile/:id' element={<Profile />} />
+        <Route path='/product/:id' element={<ProductDetail />} />
       </Routes>
     </Router>
-    
   );
 }
 

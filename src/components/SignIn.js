@@ -12,8 +12,9 @@ import LockPersonIcon from '@mui/icons-material/LockPerson';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import {useState} from "react";
-import axios from "axios";
+import { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 function Copyright(props) {
   return (
@@ -28,34 +29,30 @@ function Copyright(props) {
   );
 }
 
-// TODO remove, this demo shouldn't need to reset the theme.
-
 const defaultTheme = createTheme();
 
 export default function SignIn() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-      e.preventDefault();
+    e.preventDefault();
 
-      const response = await axios.post("http://localhost:4000/api/login",
-          {
-              username,
-              password
-          }
-      )
+    const response = await axios.post('http://localhost:4000/api/login', {
+      username,
+      password,
+    });
 
-      const result = response.data
-      console.log(result)
-      alert(result['message'])
+    const result = response.data;
+    console.log(result);
+    alert(result['message']);
 
-      if (result['status'] === true) {
-          //localStorage.setItem('token', result['token']);
-          window.location.href = "/";
-      }
-
-  }
+    if (result['status'] === true) {
+      //localStorage.setItem('token', result['token']);
+      navigate('/homepage');
+    }
+  };
 
   return (
     <ThemeProvider theme={defaultTheme}>
@@ -104,12 +101,7 @@ export default function SignIn() {
               control={<Checkbox value="remember" color="primary" />}
               label="จดจำรหัสผ่าน"
             />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-            >
+            <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
               Sign In
             </Button>
             <Grid container>

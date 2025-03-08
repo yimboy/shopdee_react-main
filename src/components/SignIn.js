@@ -22,7 +22,7 @@ function Copyright(props) {
     <Typography variant="body2" color="text.secondary" align="center" {...props}>
       {'Copyright © '}
       <Link color="inherit" href="https://mui.com/">
-        yim
+        norrapat
       </Link>{' '}
       {new Date().getFullYear()}
       {'.'}
@@ -105,7 +105,7 @@ export default function SignIn() {
               label="จดจำรหัสผ่าน"
             />
             <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-              Sign In
+              เข้าสู่ระบบ
             </Button>
             <Grid container>
               <Grid item xs>

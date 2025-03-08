@@ -114,6 +114,11 @@ const HomePage = () => {
   };
 
   const handleConfirmCart = () => {
+    if (!isAuthenticated) {
+      alert('กรุณาเข้าสู่ระบบก่อนทำการสั่งซื้อ');
+      navigate('/signin');
+      return;
+    }
     // Implement the logic for confirming the cart
     alert('ยืนยันการสั่งซื้อ');
     setCart([]); // Clear the cart

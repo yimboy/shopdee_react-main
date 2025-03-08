@@ -17,10 +17,19 @@ import {
   IconButton,
   Menu,
   MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemText,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import RemoveIcon from '@mui/icons-material/Remove';
+import AddIcon from '@mui/icons-material/Add';
 import { useAuth } from '../AuthContext';
 
 const ProductDetail = () => {
@@ -32,6 +41,7 @@ const ProductDetail = () => {
   const { cart, setCart, isAuthenticated, custID, setIsAuthenticated } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [cartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
     axios
@@ -62,6 +72,24 @@ const ProductDetail = () => {
     });
   };
 
+  const removeFromCart = (productID) => {
+    setCart((prevCart) => {
+      return prevCart
+        .map((item) =>
+          item.productID === productID ? { ...item, quantity: item.quantity - 1 } : item
+        )
+        .filter((item) => item.quantity > 0);
+    });
+  };
+
+  const handleCartOpen = () => {
+    setCartOpen(true);
+  };
+
+  const handleCartClose = () => {
+    setCartOpen(false);
+  };
+
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -83,6 +111,18 @@ const ProductDetail = () => {
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
+  };
+
+  const handleConfirmCart = () => {
+    if (!isAuthenticated) {
+      alert('กรุณาเข้าสู่ระบบก่อนทำการสั่งซื้อ');
+      navigate('/signin');
+      return;
+    }
+    // Implement the logic for confirming the cart
+    alert('ยืนยันการสั่งซื้อ');
+    setCart([]); // Clear the cart
+    handleCartClose();
   };
 
   if (loading) return <CircularProgress />;
@@ -113,7 +153,7 @@ const ProductDetail = () => {
               onChange={handleSearchChange}
             />
           </div>
-          <IconButton color="inherit" sx={{ marginLeft: 2 }} onClick={() => navigate('/cart')}>
+          <IconButton color="inherit" sx={{ marginLeft: 2 }} onClick={handleCartOpen}>
             <Badge badgeContent={cart.reduce((total, item) => total + item.quantity, 0)} color="secondary">
               <ShoppingCartIcon />
             </Badge>
@@ -170,6 +210,38 @@ const ProductDetail = () => {
           </CardContent>
         </Card>
       </Container>
+
+      {/* Cart Dialog */}
+      <Dialog open={cartOpen} onClose={handleCartClose}>
+        <DialogTitle>ตะกร้าสินค้า</DialogTitle>
+        <DialogContent>
+          <List>
+            {cart.length === 0 ? (
+              <Typography variant="body1" textAlign="center">ไม่มีสินค้าในตะกร้า</Typography>
+            ) : (
+              cart.map((item) => (
+                <ListItem key={item.productID}>
+                  <ListItemText primary={item.productName} secondary={`ราคา: ${item.price} บาท, จำนวน: ${item.quantity}`} />
+                  <IconButton onClick={() => removeFromCart(item.productID)}>
+                    <RemoveIcon />
+                  </IconButton>
+                  <IconButton onClick={() => addToCart(item)}>
+                    <AddIcon />
+                  </IconButton>
+                </ListItem>
+              ))
+            )}
+          </List>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCartClose} color="primary">
+            ปิด
+          </Button>
+          <Button onClick={handleConfirmCart} color="primary" variant="contained">
+            ยืนยัน
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

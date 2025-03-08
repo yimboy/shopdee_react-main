@@ -19,20 +19,25 @@ import {
   List,
   ListItem,
   ListItemText,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import RemoveIcon from "@mui/icons-material/Remove";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../AuthContext";
 
 const HomePage = () => {
   const [products, setProducts] = useState([]);
-  const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
+  const { isAuthenticated, setIsAuthenticated, custID, cart, setCart } = useAuth();
 
   useEffect(() => {
     axios
@@ -89,6 +94,32 @@ const HomePage = () => {
     navigate(`/product/${productID}`);
   };
 
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleProfileClick = () => {
+    navigate(`/profile/${custID}`);
+    handleMenuClose();
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    navigate('/signin');
+    handleMenuClose();
+  };
+
+  const handleConfirmCart = () => {
+    // Implement the logic for confirming the cart
+    alert('ยืนยันการสั่งซื้อ');
+    setCart([]); // Clear the cart
+    handleCartClose();
+  };
+
   return (
     <div>
       {/* Header */}
@@ -118,9 +149,25 @@ const HomePage = () => {
               <ShoppingCartIcon />
             </Badge>
           </IconButton>
-          <Button component={Link} to="/signin" color="inherit" sx={{ marginLeft: 2 }}>
-            Login
-          </Button>
+          {isAuthenticated ? (
+            <>
+              <IconButton color="inherit" sx={{ marginLeft: 2 }} onClick={handleMenuOpen}>
+                <AccountCircleIcon />
+              </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+              >
+                <MenuItem onClick={handleProfileClick}>ดูโปรไฟล์</MenuItem>
+                <MenuItem onClick={handleLogout}>ออกจากระบบ</MenuItem>
+              </Menu>
+            </>
+          ) : (
+            <Button component={Link} to="/signin" color="inherit" sx={{ marginLeft: 2 }}>
+              Login
+            </Button>
+          )}
         </Toolbar>
       </AppBar>
 
@@ -189,6 +236,9 @@ const HomePage = () => {
         <DialogActions>
           <Button onClick={handleCartClose} color="primary">
             ปิด
+          </Button>
+          <Button onClick={handleConfirmCart} color="primary" variant="contained">
+            ยืนยัน
           </Button>
         </DialogActions>
       </Dialog>

@@ -176,6 +176,31 @@ app.get('/api/profile/:id', (req, res) => {
     });
 });
 
+//Product Detail
+app.get('/api/products/:id', (req, res) => {
+    const productID = req.params.id;
+
+    let sql = "SELECT * FROM product WHERE productID = ?";
+    db.query(sql, [productID], (err, result) => {
+        if (err) {
+            console.error("❌ SQL Error: " + err);
+            return res.status(500).json({ message: "เกิดข้อผิดพลาด", status: false });
+        }
+
+        if (result.length === 0) {
+            return res.status(404).json({ message: "ไม่พบข้อมูลสินค้า", status: false });
+        }
+
+        let product = result[0];
+        product.message = "ข้อมูลสินค้า";
+        product.status = true;
+
+        res.json(product);
+    });
+});
+
+
+
 
 // Get all products
 app.get('/api/products', async function (req, res) {

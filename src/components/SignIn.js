@@ -15,6 +15,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../AuthContext';
 
 function Copyright(props) {
   return (
@@ -35,6 +36,7 @@ export default function SignIn() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const { setIsAuthenticated, setCustID } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,7 +51,8 @@ export default function SignIn() {
     alert(result['message']);
 
     if (result['status'] === true) {
-      //localStorage.setItem('token', result['token']);
+      setIsAuthenticated(true);
+      setCustID(result['custID']); // Store the custID
       navigate('/homepage');
     }
   };

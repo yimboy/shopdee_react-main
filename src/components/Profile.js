@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Container,
@@ -17,6 +17,7 @@ import {
 
 const Profile = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -76,6 +77,10 @@ const Profile = () => {
         console.error("❌ Update Error:", err);
         setError(err.response ? err.response.data.message : "เกิดข้อผิดพลาด");
       });
+  };
+
+  const handleBackClick = () => {
+    navigate('/homepage');
   };
 
   if (loading) return <CircularProgress />;
@@ -182,6 +187,9 @@ const Profile = () => {
               </Grid>
             </Grid>
           )}
+          <Button variant="outlined" color="primary" sx={{ mt: 2 }} onClick={handleBackClick}>
+            ย้อนกลับ
+          </Button>
         </CardContent>
       </Card>
     </Container>

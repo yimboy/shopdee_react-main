@@ -68,6 +68,10 @@ app.post('/api/login', function(req, res){
 // Profile
 app.get('/api/profile/:id',
     function(req, res){
+        console.log("Received request for profile ID:", req.params.id);
+    res.send({ message: "Test API works!" });
+        
+        
         const custID = req.params.id;
         let sql = "SELECT * FROM customer WHERE "
             sql += "custID=" + custID;

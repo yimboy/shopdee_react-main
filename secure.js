@@ -152,32 +152,29 @@ function query(sql, params) {
     });
 }
 
-// API profile
-app.get('/api/profile/:id', 
-    async function(req, res){
-        const custID = req.params.id;
-        const token = req.headers["authorization"].replace("Bearer","");
+// API ดึงข้อมูลโปรไฟล์ (ไม่ต้องใช้ Token)
+app.get('/api/profile/:id', (req, res) => {
+    const custID = req.params.id;
 
-        try {
-            let decode = jwt.verify(token, SECRET_KEY);
-            if(custID != decode.custID){
-                return res.send({'message':'ไม่มีสิทธิ์เข้าถึงข้อมูล','status':false});
-            }
-
-            let sql = "SELECT * FROM customer WHERE custID=? AND isActive = 1";
-            let customer = await query(sql, [custID]);
-
-            customer = customer[0];
-            customer['message'] = 'ข้อมูลโปรไฟล์ของคุณ';
-            customer['status'] = true;
-            res.send(customer);
-
-        } catch (error) {
-            res.send({'message':'ไม่มีสิทธิ์เข้าถึงข้อมูล','status':false});
+    // ดึงข้อมูลจาก MySQL
+    let sql = "SELECT * FROM customer WHERE custID = ? AND isActive = 1";
+    db.query(sql, [custID], (err, result) => {
+        if (err) {
+            console.error("❌ SQL Error: " + err);
+            return res.status(500).json({ message: "เกิดข้อผิดพลาด", status: false });
         }
-    }
-);
 
+        if (result.length === 0) {
+            return res.status(404).json({ message: "ไม่พบข้อมูลลูกค้า", status: false });
+        }
+
+        let customer = result[0];
+        customer.message = "ข้อมูลโปรไฟล์ของคุณ";
+        customer.status = true;
+
+        res.json(customer);
+    });
+});
 
 
 // Get all products
@@ -223,6 +220,50 @@ app.get('/api/product/image/:imageFile', async function (req, res) {
         });
     }
 });
+
+
+
+// Serve a profile image
+app.get('/api/profile/image/:imageFile', async function (req, res) {
+    try {
+        
+        // If the imageFile is a filename (e.g., stored in /uploads directory)
+        const imageFile = req.params.imageFile;
+        const imagePath = path.join(__dirname, 'public/assets/customer', imageFile);
+        res.sendFile(imagePath);
+
+        // If the imageFile is binary data, convert it to an image
+        // res.setHeader('Content-Type', 'image/jpeg'); // Change based on stored image type
+        // res.send(Buffer.from(imageFile, 'binary'));
+
+    } catch (error) {
+        res.status(500).send({
+            message: 'Error retrieving product image',
+            status: false,
+            error: error.message
+        });
+    }
+});
+
+app.put('/api/profile/:id', (req, res) => {
+    const custID = req.params.id;
+    const { firstName, lastName, email, mobilePhone } = req.body;
+  
+    let sql = "UPDATE customer SET firstName = ?, lastName = ?, email = ?, mobilePhone = ? WHERE custID = ?";
+    db.query(sql, [firstName, lastName, email, mobilePhone, custID], (err, result) => {
+      if (err) {
+        console.error("❌ SQL Error: " + err);
+        return res.status(500).json({ message: "เกิดข้อผิดพลาด", status: false });
+      }
+  
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "ไม่พบข้อมูลลูกค้า", status: false });
+      }
+  
+      res.json({ message: "ข้อมูลถูกอัปเดตเรียบร้อยแล้ว", status: true });
+    });
+  });
+
 
 // Create an HTTPS server
 //const httpsServer = https.createServer(credentials, app);

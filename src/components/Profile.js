@@ -1,46 +1,191 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useParams } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import axios from "axios";
+import {
+  Container,
+  Card,
+  CardContent,
+  Typography,
+  CircularProgress,
+  Alert,
+  Avatar,
+  Box,
+  Grid,
+  TextField,
+  Button,
+} from "@mui/material";
 
 const Profile = () => {
-    const { id } = useParams();
-    const [profile, setProfile] = useState({});
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+  const { id } = useParams();
+  const [profile, setProfile] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    mobilePhone: "",
+  });
 
-    useEffect(() => {
-        const fetchProfile = async () => {
-            try {
-                const token = localStorage.getItem('token'); // Assuming token is stored in localStorage
-                const response = await axios.get(`/api/profile/${id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                setProfile(response.data);
-            } catch (err) {
-                setError(err.response ? err.response.data.message : 'Error fetching profile');
-            } finally {
-                setLoading(false);
-            }
-        };
+  useEffect(() => {
+    console.log(`Fetching data from API: http://localhost:4000/api/profile/${id}`);
 
-        fetchProfile();
-    }, [id]);
+    axios
+      .get(`http://localhost:4000/api/profile/${id}`)
+      .then((response) => {
+        console.log("📌 API Response:", response.data);
+        setProfile(response.data);
+        setFormData({
+          firstName: response.data.firstName,
+          lastName: response.data.lastName,
+          email: response.data.email,
+          mobilePhone: response.data.mobilePhone,
+        });
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("❌ API Error:", err);
+        setError(err.response ? err.response.data.message : "เกิดข้อผิดพลาด");
+        setLoading(false);
+      });
+  }, [id]);
 
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>{error}</div>;
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
 
-    return (
-        <div>
-            <h1>Profile</h1>
-            <p>ID: {profile.custID}</p>
-            <p>Username: {profile.username}</p>
-            <p>First Name: {profile.firstName}</p>
-            <p>Last Name: {profile.lastName}</p>
-            <p>Status: {profile.isActive ? 'Active' : 'Inactive'}</p>
-        </div>
-    );
+  const handleEditToggle = () => {
+    setIsEditing((prev) => !prev);
+  };
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    axios
+      .put(`http://localhost:4000/api/profile/${id}`, formData)
+      .then((response) => {
+        console.log("📌 Update Response:", response.data);
+        setProfile(response.data);
+        setIsEditing(false);
+      })
+      .catch((err) => {
+        console.error("❌ Update Error:", err);
+        setError(err.response ? err.response.data.message : "เกิดข้อผิดพลาด");
+      });
+  };
+
+  if (loading) return <CircularProgress />;
+  if (error) return <Alert severity="error">{error}</Alert>;
+  if (!profile) return <Alert severity="warning">ไม่พบข้อมูล</Alert>;
+
+  const profileImage = `http://localhost:4000/api/profile/image/${profile.imageFile}`;
+
+  return (
+    <Container maxWidth="sm" sx={{ mt: 4 }}>
+      <Card>
+        <CardContent>
+          <Box display="flex" flexDirection="column" alignItems="center">
+            <Avatar src={profileImage} sx={{ m: 1, width: 100, height: 100 }} />
+            <Typography variant="h5" component="div" gutterBottom>
+              โปรไฟล์ลูกค้า
+            </Typography>
+          </Box>
+          {isEditing ? (
+            <form onSubmit={handleFormSubmit}>
+              <Grid container spacing={2} sx={{ mt: 2 }}>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="ชื่อ"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="นามสกุล"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="เบอร์โทรศัพท์"
+                    name="mobilePhone"
+                    value={formData.mobilePhone}
+                    onChange={handleInputChange}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Button type="submit" variant="contained" color="primary">
+                    บันทึก
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    sx={{ ml: 2 }}
+                    onClick={handleEditToggle}
+                  >
+                    ยกเลิก
+                  </Button>
+                </Grid>
+              </Grid>
+            </form>
+          ) : (
+            <Grid container spacing={2} sx={{ mt: 2 }}>
+              <Grid item xs={12}>
+                <Typography variant="body1" color="textSecondary">
+                  <strong>รหัสลูกค้า:</strong> {profile.custID}
+                </Typography>
+              </Grid>
+              <Grid item xs={12}>
+                <Typography variant="body1" color="textSecondary">
+                  <strong>ชื่อ:</strong> {profile.firstName} {profile.lastName}
+                </Typography>
+              </Grid>
+              <Grid item xs={12}>
+                <Typography variant="body1" color="textSecondary">
+                  <strong>Email:</strong> {profile.email}
+                </Typography>
+              </Grid>
+              <Grid item xs={12}>
+                <Typography variant="body1" color="textSecondary">
+                  <strong>เบอร์โทรศัพท์:</strong> {profile.mobilePhone}
+                </Typography>
+              </Grid>
+              <Grid item xs={12}>
+                <Typography variant="body1" color="green">
+                  {profile.message}
+                </Typography>
+              </Grid>
+              <Grid item xs={12}>
+                <Button variant="contained" color="primary" onClick={handleEditToggle}>
+                  แก้ไขโปรไฟล์
+                </Button>
+              </Grid>
+            </Grid>
+          )}
+        </CardContent>
+      </Card>
+    </Container>
+  );
 };
 
 export default Profile;
